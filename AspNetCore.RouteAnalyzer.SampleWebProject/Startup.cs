@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 
 namespace AspNetCore.RouteAnalyzer.SampleWebProject
@@ -30,12 +27,14 @@ namespace AspNetCore.RouteAnalyzer.SampleWebProject
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(
             IApplicationBuilder app,
-            IHostingEnvironment env,
-            IApplicationLifetime applicationLifetime,
+            IWebHostEnvironment env,
+            IHostApplicationLifetime applicationLifetime,
             IRouteAnalyzer routeAnalyzer
         )
         {
             m_routeAnalyzer = routeAnalyzer;
+
+            app.UseRouting();
 
             if (env.IsDevelopment())
             {
@@ -49,12 +48,10 @@ namespace AspNetCore.RouteAnalyzer.SampleWebProject
 
             app.UseStaticFiles();
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(config =>
             {
-                routes.MapRouteAnalyzer("/routes");
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action=Index}/{id?}");
+                config.MapControllers();
+                config.MapRouteAnalyzer();
             });
 
             // Lifetime events
@@ -67,7 +64,7 @@ namespace AspNetCore.RouteAnalyzer.SampleWebProject
         {
             var infos = m_routeAnalyzer.GetAllRouteInformations();
             Debug.WriteLine("======== ALL ROUTE INFORMATION ========");
-            foreach(var info in infos)
+            foreach (var info in infos)
             {
                 Debug.WriteLine(info.ToString());
             }
